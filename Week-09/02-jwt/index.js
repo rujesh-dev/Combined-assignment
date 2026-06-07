@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const jwtPassword = 'secret_key';
+const z = require('zod');
 
 /**
  * Generates a JWT that includes a user's role (admin or guest).
@@ -9,6 +10,19 @@ const jwtPassword = 'secret_key';
  */
 function signJwtWithRole(username, role) {
     // Your code here
+    const userZodSchema = z.object({
+        // username: z.string().email(),
+        role : z.enum(['admin', 'guest'])
+    })
+
+    const result = userZodSchema.safeParse({username, role});
+
+    if(!result.success){
+        return null
+    }else{
+        return jwt.sign({username, role}, jwtPassword)
+        
+    }
 }
 
 /**
@@ -18,4 +32,25 @@ function signJwtWithRole(username, role) {
  */
 function isAdmin(token) {
     // Your code here
+   try{
+     const decode = jwt.verify(token, jwtPassword);
+    return decode.role === "admin";
+    }catch(e){
+        return false
+    }
+
+    const decode = jwt.verify(token, jwtPassword);
+    if(decode.role === "admin"){
+        return true
+    }else{
+        return false
+    }
+
+   
 }
+
+module.exports = {
+    signJwtWithRole,
+    isAdmin,
+    jwtPassword
+};
